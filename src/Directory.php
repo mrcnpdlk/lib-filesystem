@@ -8,6 +8,8 @@
 namespace Mrcnpdlk\Lib\Filesystem;
 
 use FilesystemIterator;
+use Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException;
+use Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException;
 use RuntimeException;
 
 class Directory extends NodeAbstract implements NodeInterface
@@ -28,23 +30,21 @@ class Directory extends NodeAbstract implements NodeInterface
      */
     public function __construct(string $location = '')
     {
-        $this->location = self::sanitizePath($location);
+        $this->location($location);
     }
 
     /**
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
+     *
      * @return $this
      */
     public function create(): self
     {
-        if (empty($this->location)) {
-            $this->location = self::getSystemTemporaryDirectory();
-        }
-
         if (empty($this->name)) {
             $this->name = mt_rand() . '-' . str_replace([' ', '.'], '', microtime());
         }
         if (!file_exists($this->getFullPath()) && !mkdir($concurrentDirectory = $this->getFullPath(), 0777, true) && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            throw new CannotCreateException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
 
         return $this;
@@ -74,7 +74,8 @@ class Directory extends NodeAbstract implements NodeInterface
     /**
      * @param string $subDirPath
      *
-     * @throws \Mrcnpdlk\Lib\Filesystem\Exception
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
      *
      * @return \Mrcnpdlk\Lib\Filesystem\Directory
      */
@@ -103,7 +104,7 @@ class Directory extends NodeAbstract implements NodeInterface
      */
     public function location(string $location): self
     {
-        $this->location = self::sanitizePath($location);
+        $this->location = empty($location) ? self::getSystemTemporaryDirectory() : self::sanitizePath($location);
 
         return $this;
     }
@@ -111,7 +112,7 @@ class Directory extends NodeAbstract implements NodeInterface
     /**
      * @param string $name
      *
-     * @throws \Mrcnpdlk\Lib\Filesystem\Exception
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
      *
      * @return $this
      */
@@ -124,6 +125,8 @@ class Directory extends NodeAbstract implements NodeInterface
 
     /**
      * @param string $pathOrFilename
+     *
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
      *
      * @return string
      */
@@ -138,7 +141,7 @@ class Directory extends NodeAbstract implements NodeInterface
         $directoryPath = $this->removeFilenameFromPath($path);
 
         if (!file_exists($directoryPath) && !mkdir($directoryPath, 0777, true) && !is_dir($directoryPath)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $directoryPath));
+            throw new CannotCreateException(sprintf('Directory "%s" was not created', $directoryPath));
         }
 
         return $path;
@@ -213,14 +216,14 @@ class Directory extends NodeAbstract implements NodeInterface
     /**
      * @param string $name
      *
-     * @throws \Mrcnpdlk\Lib\Filesystem\Exception
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
      *
      * @return string
      */
     protected function sanitizeName(string $name): string
     {
         if (!self::isValidDirectoryName($name)) {
-            throw new Exception("The directory name `$name` contains invalid characters.");
+            throw new InvalidNameException("The directory name `$name` contains invalid characters.");
         }
 
         return trim($name);

@@ -1,6 +1,7 @@
 composer.phar
 /vendor/
 /devel/
+/_sandbox/
 .idea/
 .php_cs.cache
 .phpunit.result.cache

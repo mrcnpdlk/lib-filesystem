@@ -74,6 +74,8 @@ class File extends NodeAbstract implements NodeInterface
     }
 
     /**
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception
+     *
      * @return string
      */
     public function getMime(): string
