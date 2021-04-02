@@ -11,4 +11,3 @@ includes:
 	- vendor/phpstan/phpstan-phpunit/extension.neon
 	- vendor/phpstan/phpstan-phpunit/rules.neon
 	- vendor/jangregor/phpstan-prophecy/extension.neon
-© 2021 GitHub, Inc.
