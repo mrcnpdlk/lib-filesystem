@@ -23,10 +23,22 @@ class Directory extends NodeAbstract implements NodeInterface
      * Directory constructor.
      *
      * @param string $location
+     *
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
      */
     public function __construct(string $location = '')
     {
         $this->setLocation($location);
+    }
+
+    /**
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
+     *
+     * @return \Mrcnpdlk\Lib\Filesystem\Directory
+     */
+    public static function temp(): Directory
+    {
+        return new self(sys_get_temp_dir());
     }
 
     /**
@@ -146,30 +158,6 @@ class Directory extends NodeAbstract implements NodeInterface
     }
 
     /**
-     * @param string $path
-     *
-     * @return bool
-     */
-    protected function isFilePath(string $path): bool
-    {
-        return false !== strpos($path, '.');
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return string
-     */
-    protected function removeFilenameFromPath(string $path): string
-    {
-        if (!$this->isFilePath($path)) {
-            return $path;
-        }
-
-        return substr($path, 0, strrpos($path, DIRECTORY_SEPARATOR));
-    }
-
-    /**
      * @param string $name
      *
      * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
@@ -188,11 +176,17 @@ class Directory extends NodeAbstract implements NodeInterface
     /**
      * @param string $location
      *
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
+     *
      * @return $this
      */
     protected function setLocation(string $location): self
     {
-        $this->location = empty($location) ? self::getSystemTemporaryDirectory() : self::sanitizePath($location);
+        if ('' === trim($location)) {
+            throw new InvalidNameException('Directory name cannot be empty string');
+        }
+
+        $this->location = self::sanitizePath($location);
 
         return $this;
     }

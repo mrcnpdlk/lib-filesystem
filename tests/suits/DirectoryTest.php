@@ -8,6 +8,7 @@
 namespace suits;
 
 use Mrcnpdlk\Lib\Filesystem\Directory;
+use Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException;
 use PHPUnit\Framework\TestCase;
 
 class DirectoryTest extends TestCase
@@ -31,11 +32,14 @@ class DirectoryTest extends TestCase
 
     /**
      * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
      */
     public function testCreate(): void
     {
         $dir = new Directory(static::$pathDir);
+        self::assertFalse($dir->isExists());
         $dir->create();
+        self::assertTrue($dir->isExists());
         self::assertSame(static::$pathDir, $dir->getFullPath());
         self::assertDirectoryExists(static::$pathDir);
         self::assertDirectoryIsReadable(static::$pathDir);
@@ -52,9 +56,24 @@ class DirectoryTest extends TestCase
      * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
      * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
      */
+    public function testInvalidSubDir(): void
+    {
+        $this->expectException(InvalidNameException::class);
+        $dir = Directory::temp()->getSubDir('$%^&*');
+        $dir->create();
+    }
+
+    /**
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
+     */
     public function testSubDir(): void
     {
-        $dir    = new Directory(static::$pathDir);
+        $dir = new Directory(static::$pathDir);
+
+        $subDirEmpty = $dir->getSubDir();
+        self::assertSame(static::$pathDir, $subDirEmpty->getFullPath());
+
         $subDir = $dir->getSubDir('subdir');
 
         $path = static::$pathDir . DIRECTORY_SEPARATOR . 'subdir';
@@ -66,5 +85,16 @@ class DirectoryTest extends TestCase
         $dir->delete();
         self::assertDirectoryNotExists($path);
         self::assertDirectoryNotExists(static::$pathDir);
+    }
+
+    /**
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
+     */
+    public function testTempDir(): void
+    {
+        $dir = Directory::temp();
+        self::assertTrue($dir->isExists());
+        self::assertDirectoryExists($dir->getFullPath());
+        self::assertSame(sys_get_temp_dir(), $dir->getFullPath());
     }
 }

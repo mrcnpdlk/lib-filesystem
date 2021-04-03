@@ -10,14 +10,6 @@ namespace Mrcnpdlk\Lib\Filesystem;
 abstract class NodeAbstract
 {
     /**
-     * @return string
-     */
-    protected static function getSystemTemporaryDirectory(): string
-    {
-        return rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR);
-    }
-
-    /**
      * @param string $directoryName
      *
      * @return bool
