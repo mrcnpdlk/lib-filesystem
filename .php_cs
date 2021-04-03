@@ -32,7 +32,7 @@ $finder = (new Finder())
     ->in(__DIR__ . '/tests')
 ;
 
-return (new Config('mrcnpdlk-odsetki'))
+return (new Config('mrcnpdlk-lib-filesystem'))
     ->setRiskyAllowed(true)
     ->setRules($rules)
     ->setFinder($finder)
