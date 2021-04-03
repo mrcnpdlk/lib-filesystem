@@ -18,10 +18,6 @@ class Directory extends NodeAbstract implements NodeInterface
      * @var string
      */
     private $location;
-    /**
-     * @var string
-     */
-    private $name;
 
     /**
      * Directory constructor.
@@ -30,7 +26,7 @@ class Directory extends NodeAbstract implements NodeInterface
      */
     public function __construct(string $location = '')
     {
-        $this->location($location);
+        $this->setLocation($location);
     }
 
     /**
@@ -40,10 +36,8 @@ class Directory extends NodeAbstract implements NodeInterface
      */
     public function create(): self
     {
-        if (empty($this->name)) {
-            $this->name = mt_rand() . '-' . str_replace([' ', '.'], '', microtime());
-        }
-        if (!file_exists($this->getFullPath()) && !mkdir($concurrentDirectory = $this->getFullPath(), 0777, true) && !is_dir($concurrentDirectory)) {
+        $concurrentDirectory = $this->getFullPath();
+        if (!file_exists($this->getFullPath()) && !mkdir($concurrentDirectory, 0777, true) && !is_dir($concurrentDirectory)) {
             throw new CannotCreateException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
 
@@ -72,6 +66,26 @@ class Directory extends NodeAbstract implements NodeInterface
     }
 
     /**
+     * @param string $fileName
+     *
+     * @return \Mrcnpdlk\Lib\Filesystem\File
+     */
+    public function file(string $fileName): File
+    {
+        return new File($this->getFullPath() . DIRECTORY_SEPARATOR . $fileName);
+    }
+
+    /**
+     * @return string
+     */
+    public function getFullPath(): string
+    {
+        $realPath = realpath($this->location);
+
+        return false === $realPath ? $this->location : $realPath;
+    }
+
+    /**
      * @param string $subDirPath
      *
      * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
@@ -95,56 +109,6 @@ class Directory extends NodeAbstract implements NodeInterface
     public function isExists(): bool
     {
         return is_dir($this->getFullPath());
-    }
-
-    /**
-     * @param string $location
-     *
-     * @return $this
-     */
-    public function location(string $location): self
-    {
-        $this->location = empty($location) ? self::getSystemTemporaryDirectory() : self::sanitizePath($location);
-
-        return $this;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\InvalidNameException
-     *
-     * @return $this
-     */
-    public function name(string $name): self
-    {
-        $this->name = $this->sanitizeName($name);
-
-        return $this;
-    }
-
-    /**
-     * @param string $pathOrFilename
-     *
-     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
-     *
-     * @return string
-     */
-    public function path(string $pathOrFilename = ''): string
-    {
-        if (empty($pathOrFilename)) {
-            return $this->getFullPath();
-        }
-
-        $path = $this->getFullPath() . DIRECTORY_SEPARATOR . trim($pathOrFilename, '/');
-
-        $directoryPath = $this->removeFilenameFromPath($path);
-
-        if (!file_exists($directoryPath) && !mkdir($directoryPath, 0777, true) && !is_dir($directoryPath)) {
-            throw new CannotCreateException(sprintf('Directory "%s" was not created', $directoryPath));
-        }
-
-        return $path;
     }
 
     /**
@@ -179,14 +143,6 @@ class Directory extends NodeAbstract implements NodeInterface
         gc_collect_cycles();
 
         return rmdir($path);
-    }
-
-    /**
-     * @return string
-     */
-    protected function getFullPath(): string
-    {
-        return $this->location . ($this->name ? DIRECTORY_SEPARATOR . $this->name : '');
     }
 
     /**
@@ -227,5 +183,17 @@ class Directory extends NodeAbstract implements NodeInterface
         }
 
         return trim($name);
+    }
+
+    /**
+     * @param string $location
+     *
+     * @return $this
+     */
+    protected function setLocation(string $location): self
+    {
+        $this->location = empty($location) ? self::getSystemTemporaryDirectory() : self::sanitizePath($location);
+
+        return $this;
     }
 }

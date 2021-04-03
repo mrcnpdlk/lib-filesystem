@@ -12,6 +12,13 @@ interface NodeInterface
     public function delete(): bool;
 
     /**
+     * Return full path for directory or file
+     *
+     * @return string
+     */
+    public function getFullPath(): string;
+
+    /**
      * Check if node exists on filesystem
      *
      * @return bool

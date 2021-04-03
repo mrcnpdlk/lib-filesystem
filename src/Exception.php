@@ -7,6 +7,6 @@
 
 namespace Mrcnpdlk\Lib\Filesystem;
 
-class Exception extends \Exception
+class Exception extends \Mrcnpdlk\Lib\Exception
 {
 }

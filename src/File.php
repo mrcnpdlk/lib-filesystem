@@ -38,6 +38,34 @@ class File extends NodeAbstract implements NodeInterface
         return !$this->isExists();
     }
 
+    /**
+     * /www/htdocs/inc/lib.inc.php -> lib.inc.php
+     *
+     * @return string
+     */
+    public function getBasename(): string
+    {
+        return pathinfo($this->getFullPath(), PATHINFO_BASENAME);
+    }
+
+    /**
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception
+     *
+     * @return string
+     */
+    public function getContents(): string
+    {
+        $res = file_get_contents($this->getFullPath());
+        if (false === $res) {
+            throw new Exception('Nie udało się pobrać zawartości do pliku');
+        }
+
+        return $res;
+    }
+
+    /**
+     * @return \Mrcnpdlk\Lib\Filesystem\Directory
+     */
     public function getDir(): Directory
     {
         return new Directory($this->getDirname());
@@ -51,6 +79,16 @@ class File extends NodeAbstract implements NodeInterface
     public function getDirname(): string
     {
         return pathinfo($this->getFullPath(), PATHINFO_DIRNAME);
+    }
+
+    /**
+     * /www/htdocs/inc/lib.inc.php -> php
+     *
+     * @return string
+     */
+    public function getExtension(): string
+    {
+        return pathinfo($this->getFullPath(), PATHINFO_EXTENSION);
     }
 
     /**
@@ -126,11 +164,13 @@ class File extends NodeAbstract implements NodeInterface
      * @param string $contents
      *
      * @throws \Mrcnpdlk\Lib\Filesystem\Exception
+     * @throws \Mrcnpdlk\Lib\Filesystem\Exception\CannotCreateException
      *
      * @return $this
      */
     public function putContents(string $contents): self
     {
+        $this->getDir()->create();
         $res = file_put_contents($this->getFullPath(), $contents);
         if (false === $res) {
             throw new Exception('Nie udało się zapisać zawartości do pliku');
